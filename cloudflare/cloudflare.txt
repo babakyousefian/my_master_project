@@ -1,0 +1,41 @@
+URL = https://dash.cloudflare.com/f18bf8b205a480379f62dfbb5af7511a/babakyousefian.ir/dns/records
+
+DNS management for babakyousefian.ir
+
+Review, add, and edit DNS records. Edits will go into effect once saved.
+DNS Setup:Full
+
+Search DNS Records
+Your search yielded 2 results
+
+Type = A
+
+Name = babakyousefian.ir
+
+Content = 62.60.164.199
+
+Proxy status = DNS only
+
+TTL = Auto
+
+Actions = Edit
+
+Type = A
+
+Name = www
+	
+Content = 62.60.164.199
+	
+Proxy status = DNS only
+	
+TTL = Auto
+
+Actions = Edit
+
+Cloudflare Nameservers
+
+Every DNS zone on Cloudflare is assigned a set of Cloudflare-branded nameservers.
+Type	Value
+NS	abdullah.ns.cloudflare.com
+NS	kimora.ns.cloudflare.com
+
