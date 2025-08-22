@@ -1,0 +1,18 @@
+username = root
+
+password = h46zmTPX70
+
+SSH key = [PRIVATE]
+
+SERVER_IP = 62.60.164.199
+
+===============================
+
+inner_username = babak
+
+inner_user_password = babak792b
+
+SSH key = [PRIVATE]
+
+SERVER_IP = 62.60.164.199
+
