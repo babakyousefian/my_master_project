@@ -153,6 +153,14 @@ This project is licensed under the MIT License.
 ## 8. Badges
 
 
+
+![GitHub repo size](https://img.shields.io/github/repo-size/babakyousefian/my_master_project)  
+![GitHub last commit](https://img.shields.io/github/last-commit/babakyousefian/my_master_project)  
+![GitHub issues](https://img.shields.io/github/issues/babakyousefian/my_master_project)  
+![GitHub stars](https://img.shields.io/github/stars/babakyousefian/my_master_project?style=social)  
+
+
+
 ---
 
 
