@@ -1,4 +1,4 @@
-# my_master_project  
+<img width="2000" height="1373" alt="image" src="https://github.com/user-attachments/assets/9fd838fe-e396-460f-b023-9c6b940d3023" /># my_master_project  
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/babakyousefian/my_master_project)  
 ![GitHub last commit](https://img.shields.io/github/last-commit/babakyousefian/my_master_project)  
@@ -8,6 +8,8 @@
 ---
 
 ## 1. Project's Title  
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/project-management-strategy-process-planning-organization-concept.jpg)
 
 **my_master_project — Parallel Processing Scenarios with FastAPI, Docker, and NGINX**  
 
@@ -73,11 +75,22 @@ sudo uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 sudo cd static
 sudo python3 -m http.server 5500
 ```
+---
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_JO6G3iWKSgGHDL_TcQIUZw.png)
+
+---
 
 #### Open:
 
 1. > Backend → http://127.0.0.1:8000/docs
 2. > Frontend → http://127.0.0.1:5500/index.html
+
+---
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/b63c3ada-3c26-479e-88b6-fa7cd0869a16.png)
+
+---
 
 Or just use:
 
@@ -93,12 +106,24 @@ sudo docker compose build --no-cache
 sudo docker compose up -d
 sudo docker compose ps
 ```
+---
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_5CEBcNqC0sX3iM-o_ghwyA.jpg)
+
+---
 
 #### ___Health-check API:___
 
 ```bash
 curl http://127.0.0.1:8000/health
 ```
+
+---
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_dCBmstxXr1eJT21ONrNCyg.jpg)
+
+---
+
 ## 5. How to Use the Project
 
 
@@ -113,6 +138,12 @@ curl http://127.0.0.1:8000/health
   5. Click Run Scenarios.
 
   6. The result shows both the raw result and the normalized result.
+
+---
+
+![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/383873-web_design-web_development-HTML-CSS-JavaScript-jquery-ajax-IT_design-748x598.jpg)
+
+---
 
 #### ___Example API request (cURL)🛺___
 
