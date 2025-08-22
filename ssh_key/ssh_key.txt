@@ -1,0 +1,129 @@
+
+Your identification has been saved in /root/.ssh/id_ed25519
+Your public key has been saved in /root/.ssh/id_ed25519.pub
+The key fingerprint is:
+SHA256:laBv7b5OBNJJ+1XwO+LinPSAmGnJzhOj0CEuU9Iyl20 babaktousefian2000@gmail.com
+The key's randomart image is:
++--[ED25519 256]--+
+|        o   ...  |
+|       + + . o   |
+| . o  o = o . .  |
+|+ * E  o = .   . |
+| B + .  S + . o  |
+|o o ..o* + . . . |
+| o . .Bo. * .    |
+|    .+.  * =     |
+|      o. .B..    |
++----[SHA256]-----+
+root@vm-178752:/home/babak/my_master_project/ssh_key# 
+
+
+
+Agent pid 1539558
+Enter passphrase for /root/.ssh/id_ed25519: 
+Identity added: /root/.ssh/id_ed25519 (babaktousefian2000@gmail.com)
+root@vm-178752:/home/babak/my_master_project# 
+
+
+
+root@vm-178752:/home/babak/my_master_project# cat ~/.ssh/id_ed25519.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJFVJvmEVJfmscWG1U56nXryxDH5f8716hzt/b6xJArH babaktousefian2000@gmail.com
+
+
+
+
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+We need to generate a lot of random bytes. It is a good idea to perform
+some other action (type on the keyboard, move the mouse, utilize the
+disks) during the prime generation; this gives the random number
+generator a better chance to gain enough entropy.
+gpg: /root/.gnupg/trustdb.gpg: trustdb created
+gpg: directory '/root/.gnupg/openpgp-revocs.d' created
+gpg: revocation certificate stored as '/root/.gnupg/openpgp-revocs.d/644A0E9A30EBC1D472AF0084ED3AED8ED36BD1EA.rev'
+public and secret key created and signed.
+
+pub   rsa4096 2025-08-21 [SC]
+      644A0E9A30EBC1D472AF0084ED3AED8ED36BD1EA
+uid                      babak (babak) <babakyousefian2000@gmail.com>
+sub   rsa4096 2025-08-21 [E]
+
+root@vm-178752:/home/babak/my_master_project# 
+
+
+
+
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/root/.gnupg/pubring.kbx
+------------------------
+sec   rsa4096/ED3AED8ED36BD1EA 2025-08-21 [SC]
+      644A0E9A30EBC1D472AF0084ED3AED8ED36BD1EA
+uid                 [ultimate] babak (babak) <babakyousefian2000@gmail.com>
+ssb   rsa4096/C0867ABB47A180E9 2025-08-21 [E]
+
+root@vm-178752:/home/babak/my_master_project# 
+
+
+
+
+root@vm-178752:/home/babak/my_master_project/ssh_key# KEYID=ED3AED8ED36BD1EA
+root@vm-178752:/home/babak/my_master_project/ssh_key# gpg --armor --export $KEYID
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+ByprZ4o0JJDadVw=
+=7oDn
+-----END PGP PUBLIC KEY BLOCK-----
+
+
+
