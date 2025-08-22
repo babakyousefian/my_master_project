@@ -75,11 +75,9 @@ sudo uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 sudo cd static
 sudo python3 -m http.server 5500
 ```
----
 
-![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_JO6G3iWKSgGHDL_TcQIUZw.png)
+<img width="2000" height="1373" alt="image" src="https://miro.medium.com/v2/resize:fit:1400/0*rK0SKJNctdTIoNt9.png"/>
 
----
 
 #### Open:
 
@@ -88,7 +86,7 @@ sudo python3 -m http.server 5500
 
 ---
 
-![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/b63c3ada-3c26-479e-88b6-fa7cd0869a16.png)
+<img width="2000" height="1373" alt="image" src="https://repository-images.githubusercontent.com/412096693/b63c3ada-3c26-479e-88b6-fa7cd0869a16"/>
 
 ---
 
@@ -108,7 +106,7 @@ sudo docker compose ps
 ```
 ---
 
-![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_5CEBcNqC0sX3iM-o_ghwyA.jpg)
+<img width="2000" height="1373" alt="image" src="https://hdwallpaperim.com/wp-content/uploads/2017/08/25/461265-docker-containers.jpg"/>
 
 ---
 
@@ -120,7 +118,7 @@ curl http://127.0.0.1:8000/health
 
 ---
 
-![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/1_dCBmstxXr1eJT21ONrNCyg.jpg)
+<img width="2000" height="1373" alt="image" src="https://wallpapercave.com/wp/wp8114615.jpg"/>
 
 ---
 
@@ -141,7 +139,8 @@ curl http://127.0.0.1:8000/health
 
 ---
 
-![](file:///home/babak/Documents/websites/website1/myOwnProject/master%20project/my_master_project/images/383873-web_design-web_development-HTML-CSS-JavaScript-jquery-ajax-IT_design-748x598.jpg)
+
+<img width="2000" height="1373" alt="image" src="https://wallup.net/wp-content/uploads/2017/11/22/383873-web_design-web_development-HTML-CSS-JavaScript-jquery-ajax-IT_design.jpg"/>
 
 ---
 
@@ -7225,3 +7224,5 @@ flowchart TD
 ---
 
 ##### '___@Author by : babak yousefian___'
+
+---
