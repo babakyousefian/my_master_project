@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>پروژه پردازش موازی — Babak Yousefian</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Favicons -->
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="./logo.png">
+  <link rel="apple-touch-icon" href="./logo.png">
+  <meta name="theme-color" content="#0f1724">
+
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa7b2;
+      --accent-1:#ff7b7b; --accent-2:#ffb870; --accent-3:#ffd56b;
+      --accent-4:#8ee5a1; --accent-5:#6fd3ff; --accent-6:#9b8cff; --accent-7:#ff7bd4;
+      --glass: rgba(255,255,255,0.03); --glass-2: rgba(255,255,255,0.02); --border: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,var(--bg) 0%,#05060a 100%); color:#e6eef6;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding:32px;
+    }
+    .container{ width:100%; max-width:980px; background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.015));
+      border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      border:1px solid var(--border); overflow:hidden; animation:floatIn .5s cubic-bezier(.2,.9,.3,1);
+    }
+    header.appbar{ display:flex; gap:16px; align-items:center; padding:18px 24px;
+      background:linear-gradient(90deg,rgba(255,255,255,0.012),rgba(255,255,255,0.01)); border-bottom:1px solid var(--border);
+    }
+    .logo{ width:62px; height:62px; border-radius:10px; overflow:hidden; display:flex; justify-content:center; align-items:center;
+      background:var(--glass); border:1px solid rgba(255,255,255,0.03); box-shadow:0 6px 16px rgba(0,0,0,0.6); flex-shrink:0; padding:6px;
+    }
+    .logo img{ width:100%; height:100%; object-fit:contain; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+    .title{ flex:1; display:flex; flex-direction:column; }
+    .title h1{ margin:0; font-size:18px; font-weight:700; letter-spacing:.2px; }
+    .title p{ margin:2px 0 0; color:var(--muted); font-size:13px; }
+    .top-actions{ display:flex; gap:8px; align-items:center; }
+
+    main{ padding:24px; display:grid; grid-template-columns:1fr 420px; gap:22px; }
+    .panel{ background:linear-gradient(180deg,var(--glass),var(--glass-2)); border-radius:12px; padding:18px; border:1px solid var(--border); min-height:320px; }
+    label{ display:block; font-weight:600; margin-bottom:8px; color:var(--muted); font-size:13px; }
+    select, input[type="number"]{
+      width:100%; padding:12px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.04);
+      background:transparent; color:inherit; outline:none; font-size:14px; transition:transform .12s ease;
+    }
+    select:focus, input:focus{ transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,0.6); }
+    .color-grid{ display:flex; gap:8px; margin:12px 0 20px; flex-wrap:wrap; }
+    .swatch{ width:34px; height:34px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(0,0,0,0.5); }
+    .sw1{background:var(--accent-1)} .sw2{background:var(--accent-2)} .sw3{background:var(--accent-3)}
+    .sw4{background:var(--accent-4)} .sw5{background:var(--accent-5)} .sw6{background:var(--accent-6)} .sw7{background:var(--accent-7)}
+    .btn{ display:inline-flex; gap:10px; align-items:center; padding:12px 16px; border-radius:10px;
+      background:linear-gradient(90deg,var(--accent-5),var(--accent-6)); color:#061021; border:none; font-weight:700;
+      cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,0.6), inset 0 -4px 12px rgba(255,255,255,0.06);
+      transition:transform .12s ease, box-shadow .12s ease; width:100%; text-align:center; margin-top:12px;
+    }
+    .btn:hover{ transform:translateY(-3px); box-shadow:0 18px 40px rgba(0,0,0,0.7); }
+    .output-card{ background:linear-gradient(180deg,rgba(10,14,20,0.6),rgba(8,12,16,0.6)); border-radius:12px; padding:14px;
+      border:1px solid rgba(255,255,255,0.03); min-height:320px; display:flex; flex-direction:column; gap:12px;
+    }
+    .out-header{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .badge{ padding:6px 10px; border-radius:999px; background:linear-gradient(90deg,var(--accent-2),var(--accent-3)); color:#051018; font-weight:700; font-size:13px; }
+    .output-area{ flex:1; overflow:auto; background:rgba(255,255,255,0.01); border-radius:8px; padding:12px; font-family:ui-monospace,Menlo,Monaco,"Roboto Mono",monospace; font-size:13px; color:#dff3ff; white-space:pre-wrap; line-height:1.45; }
+    .explain{ font-size:13px; color:var(--muted); border-top:1px dashed rgba(255,255,255,0.03); padding-top:10px; }
+    footer{ padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:13px; }
+    @media (max-width:920px){ main{ grid-template-columns:1fr; } .output-card{ order:-1; } }
+    @keyframes floatIn{ from{ transform:translateY(10px) scale(.995); opacity:0 } to{ transform:none; opacity:1 } }
+    .loader{ width:22px; height:22px; border-radius:50%; border:3px solid rgba(255,255,255,0.06); border-top-color:rgba(255,255,255,0.18); animation:spin .8s linear infinite; }
+    @keyframes spin{ to{ transform:rotate(360deg) } }
+
+    /* Animated soft boxes background */
+    .bg-layer{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; opacity:0.12; }
+    .bg-layer .box{ position:absolute; width:220px; height:120px; background:linear-gradient(120deg,rgba(255,255,255,0.5),rgba(0,0,55,0.3));
+      border-radius:12px; filter:blur(10px); transform-origin:center; will-change:transform,opacity; mix-blend-mode:screen; animation:float-rotate 10s linear infinite; opacity:0.9;
+    }
+    @keyframes float-rotate{
+      0%{ transform:translateY(0) rotate(0deg) scale(.95); opacity:.9 }
+      25%{ transform:translateY(-60px) rotate(30deg) scale(1.05); opacity:.8 }
+      50%{ transform:translateY(10px) rotate(90deg) scale(.9); opacity:.5 }
+      75%{ transform:translateY(60px) rotate(150deg) scale(1.05); opacity:.8 }
+      100%{ transform:translateY(0) rotate(360deg) scale(.95); opacity:.9 }
+    }
+    .bg-layer .b1{ left:10%; top:12%; animation-delay:0s; width:260px; height:140px; }
+    .bg-layer .b2{ right:8%; top:18%; animation-delay:1.8s; width:220px; height:120px; }
+    .bg-layer .b3{ left:20%; bottom:14%; animation-delay:3.6s; width:200px; height:110px; }
+    .bg-layer .b4{ right:20%; bottom:20%; animation-delay:5.4s; width:260px; height:140px; opacity:.09; }
+    
+    /* relative animated colorful frames for panels */
+    .panel, .output-card {
+      position: relative;
+      overflow: hidden;
+    }
+ 
+    .panel::before, .output-card::before {
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: linear-gradient(120deg,var(--accent-4),var(--accent-7),var(--accent-5));
+      border-radius:14px;
+      filter: blur(20px);
+      opacity:0.12;
+      animation: borderflow 8s linear infinite;
+      z-index:0;
+    }
+
+    @keyframes borderflow {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(180deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .panel > *, .output-card > * {
+      position:relative;
+      z-index:1;
+    }
+    
+    /* Neon animated border for the whole container */
+    .container {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: linear-gradient(120deg,var(--accent-1),var(--accent-5),var(--accent-7));
+      border-radius:16px;
+      filter: blur(25px);
+      opacity:0.15;
+      animation: borderflow 12s linear infinite;
+      z-index:0;
+    }
+ 
+    .container > * {
+      position: relative;
+      z-index: 1;
+    }
+    /* Neon border styles */
+    .output-area,
+    .explain {
+      position: relative;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      animation: neonPulse 4s infinite alternate;
+    }
+
+    /* Neon pulse animation for glowing effect */
+    @keyframes neonPulse {
+      0%    { box-shadow: 0 0  1px rgba(255,255,255,0.025); }
+      10%   { box-shadow: 0 0 2px rgba(255,255,255,0.1); }
+      20%   { box-shadow: 0 0 3px rgba(255,255,255,0.2); }
+      30%   { box-shadow: 0 0 4px rgba(255,255,255,0.3); }
+      40%   { box-shadow: 0 0 5px rgba(255,255,255,0.4); }
+      50%   { box-shadow: 0 0  6px rgba(255,255,255,0.5), 0 0 16px rgba(255,255,255,0.3); }
+      60%   { box-shadow: 0 0  5px rgba(255,255,255,0.4), 0 0 16px rgba(255,255,255,0.25); }
+      70%   { box-shadow: 0 0  4px rgba(255,255,255,0.3), 0 0 16px rgba(255,255,255,0.2); }
+      80%   { box-shadow: 0 0  3px rgba(255,255,255,0.2), 0 0 16px rgba(255,255,255,0.1); }
+      90%   { box-shadow: 0 0  2px rgba(255,255,255,0.1), 0 0 16px rgba(255,255,255,0.025); }
+      100%  { box-shadow: 0 0  1px rgba(255,255,255,0.025); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="bg-layer" aria-hidden="true">
+    <div class="box b1"></div>
+    <div class="box b2"></div>
+    <div class="box b3"></div>
+    <div class="box b4"></div>
+  </div>
+
+  <div class="container" role="application" aria-label="Parallel Processing Demo">
+    <header class="appbar">
+      <div class="logo" title="دانشگاه لرستان - پروژه">
+        <img src="./logo.png" alt="logo" />
+      </div>
+      <div class="title">
+        <h1>پروژه پردازش موازی — Babak Yousefian</h1>
+        <p>نمایش سناریوهای Thread / Process — انتخاب سناریو، اجرای بک‌اند و نمایش خروجی</p>
+      </div>
+      <div class="top-actions" style="min-width:160px">
+        <!-- Play / Pause Music Button -->
+        <button id="musicBtn" class="btn" style="width:auto; padding:8px 14px; font-size:13px;">Play</button>
+        <audio id="bgMusic" src="./song.mp3"></audio>
+
+        <div style="text-align:center">
+          <div style="font-size:12px;color:var(--muted)">نسخه</div>
+          <div style="font-weight:800">v1.1</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="panel">
+        <label for="type">نوع موازی‌سازی (Parallelism)</label>
+        <select id="type">
+          <option value="thread">نخ (Thread-Based)</option>
+          <option value="process">فرایند (Process-Based)</option>
+        </select>
+
+        <label for="task" style="margin-top:14px">انتخاب مورد (Task)</label>
+        <select id="task"></select>
+
+        <label for="scenario" style="margin-top:14px">شماره سناریو (1 تا 3)</label>
+        <input type="number" id="scenario" min="1" max="3" value="3" />
+
+        <div class="color-grid" aria-hidden="true">
+          <div class="swatch sw1"></div><div class="swatch sw2"></div><div class="swatch sw3"></div>
+          <div class="swatch sw4"></div><div class="swatch sw5"></div><div class="swatch sw6"></div><div class="swatch sw7"></div>
+        </div>
+
+        <button id="runBtn" class="btn" aria-live="polite">
+          <span id="btnText">اجرا (Run Scenario)</span>
+        </button>
+
+        <div style="margin-top:10px; color:var(--muted); font-size:13px;">
+          <strong>نکته:</strong> درخواست به آدرس <code>BACKEND_BASE/run_scenarios</code> ارسال می‌شود و نتیجهٔ بخش‌بندی‌شده نمایش داده خواهد شد.
+        </div>
+      </div>
+
+      <aside class="output-card">
+        <div class="out-header">
+          <div>
+            <div style="font-weight:700; font-size:15px" id="output-title">خروجی سناریو</div>
+            <div style="color:var(--muted); font-size:13px">نمایش خروجی متنی و توضیحات</div>
+          </div>
+          <div class="badge" id="statusBadge">آماده</div>
+        </div>
+
+        <div class="output-area" id="outputArea">خروجی در این‌جا نمایش داده می‌شود...</div>
+        <div class="explain" id="explainArea">توضیحات اجرای الگوریتم و چرایی خروجی، پس از اجرای سناریو نمایش داده می‌شود.</div>
+      </aside>
+    </main>
+
+    <footer>
+      <div>طراحی شده برای پروژه — دانشگاه لرستان</div>
+      <div>Made with ❤️ — Babak Yousefian</div>
+      <div>Github:
+        <a href="https://github.com/babakyousefian" target="_blank"><mark>babakyousefian</mark></a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // >>> Configure your backend origin here (different port/domain OK)
+    const BACKEND_BASE = localStorage.getItem('backendBase') || "https://babakyousefian.ir/api" || "http://127.0.0.1:8000" || "https://127.0.0.1:8000" || "http://127.0.0.1:8080" || "https://127.0.0.1:8080" || "http://localhost:8000" || "https://localhost:8000" || "http://localhost:8080" || "https://localhost:8080" || "http://127.0.0.1:5500" || "https://127.0.0.1:5500" || "http://localhost:5500" || "https://localhost:5500" || "http://babakyousefian.ir/api" || "https://www.babakyousefian.ir/api" || "http://www.babakyousefian.ir/api" || "https://babakyousefian.ir" || "http://www.babakyousefian.ir";
+    
+    const API_BASE = "/api";
+
+    async function runScenario() {
+      const body = {
+        type: "thread",      // یا "process"
+        scenario_task: 1,    // 1..7 یا 1..8
+        scenario_number: 3
+      };
+      const res = await fetch(`${API_BASE}/run_scenarios`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      console.log(data);
+      // ... render in UI
+    }
+    
+    // UI elements
+    const tasksCount = { thread: 7, process: 8 };
+    const typeEl = document.getElementById('type');
+    const taskEl = document.getElementById('task');
+    const scenarioEl = document.getElementById('scenario');
+    const runBtn = document.getElementById('runBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const outputArea = document.getElementById('outputArea');
+    const explainArea = document.getElementById('explainArea');
+    const btnText = document.getElementById('btnText');
+
+    function populateTasks(){
+      const t = typeEl.value, n = tasksCount[t]; taskEl.innerHTML = '';
+      for(let i=1;i<=n;i++){
+        const o = document.createElement('option'); o.value = i; o.textContent = `Task ${i}`; taskEl.appendChild(o);
+      }
+    }
+    populateTasks(); typeEl.addEventListener('change', populateTasks);
+
+    function renderNormalized(normalized){
+      if(!normalized || !Array.isArray(normalized.sections)) return "⚠️ پاسخ قابل نمایش نیست.";
+      const parts = [];
+      normalized.sections.forEach(sec => {
+        parts.push(`🔹 ${sec.title}`);
+        if(Array.isArray(sec.items) && sec.items.length){
+          parts.push(sec.items.map((x,i)=>` ${i+1}. ${x}`).join("\n"));
+        }else{
+          parts.push("  (بدون آیتم)");
+        }
+        parts.push(""); // spacer
+      });
+      const metaKeys = normalized.meta ? Object.keys(normalized.meta) : [];
+      if(metaKeys.length){
+        parts.push("— Meta —");
+        metaKeys.forEach(k => parts.push(`• ${k}: ${normalized.meta[k]}`));
+        parts.push("");
+      }
+      if(Array.isArray(normalized.extras) && normalized.extras.length){
+        normalized.extras.forEach(ex => {
+          parts.push(`— ${ex.title} —`);
+          if(Array.isArray(ex.items)) parts.push(ex.items.map((x,i)=>` ${i+1}. ${x}`).join("\n"));
+          parts.push("");
+        });
+      }
+      return parts.join("\n");
+    }
+
+    runBtn.addEventListener('click', async () => {
+      const payload = {
+        type: typeEl.value,
+        scenario_task: Number(taskEl.value),
+        scenario_number: Number(scenarioEl.value)
+      };
+
+      // UI loading state
+      statusBadge.textContent = 'در حال اجرا...';
+      runBtn.disabled = true;
+      const loader = document.createElement('span'); loader.className = 'loader'; runBtn.prepend(loader);
+      btnText.textContent = 'در حال اجرا';
+
+      try {
+        const res = await fetch(`${BACKEND_BASE}/run_scenarios`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          outputArea.textContent = `خطای سرور: ${res.status}\n\n${txt}`;
+          explainArea.textContent = 'خطا در اجرای سناریو. لطفاً لاگ سرور را چک کنید.';
+          statusBadge.textContent = 'خطا';
+          return;
+        }
+
+        const data = await res.json();
+        // Show normalized sections (clean UI)
+        outputArea.textContent = renderNormalized(data.normalized);
+        // And show server explanation (why this output happened)
+        explainArea.textContent = `چرا این خروجی تولید شد؟\n${data.explanation || '—'}\n\n` +
+          `نوع: ${data.data?.type} | تسک: ${data.data?.scenario_task} | سناریو: ${data.data?.scenario_number}`;
+
+        statusBadge.textContent = 'نمایش نتیجه';
+
+      } catch (err) {
+        outputArea.textContent = 'خطا در ارسال درخواست به سرور:\n' + (err.message || String(err));
+        explainArea.textContent = `آدرس بک‌اند: ${BACKEND_BASE}\nاگر روی پورت/دامنهٔ دیگری است، از کنسول مرورگر اجرا کنید:\nlocalStorage.setItem('backendBase','http://HOST:PORT')`;
+        statusBadge.textContent = 'خطا';
+        console.error(err);
+      } finally {
+        runBtn.disabled = false;
+        btnText.textContent = 'اجرا (Run Scenario)';
+        const existing = runBtn.querySelector('.loader'); if(existing) existing.remove();
+      }
+    });
+
+    // initial UI
+    statusBadge.textContent = 'آماده';
+    outputArea.textContent = 'برای نمایش خروجی، ابتدا نوع، مورد و شماره سناریو را انتخاب کنید و سپس "اجرا" را بزنید.';
+    explainArea.textContent = 'توضیحات سناریو پس از اجرای آن در این بخش نمایش داده خواهد شد.';
+    
+    
+    // === Music Play/Pause ===
+    const musicBtn = document.getElementById('musicBtn');
+    const bgMusic = document.getElementById('bgMusic');
+
+    musicBtn.addEventListener('click', () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+        musicBtn.textContent = "Pause";
+      } else {
+        bgMusic.pause();
+        musicBtn.textContent = "Play";
+      }
+    });
+
+// تغییر متن دکمه وقتی آهنگ به طور کامل تمام شد
+    bgMusic.addEventListener('ended', () => {
+      musicBtn.textContent = "Play";
+    });
+
+  </script>
+</body>
+</html>
