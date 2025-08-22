@@ -7173,8 +7173,8 @@ pytest tests/
 flowchart TD
   User --> Frontend[Static HTML 5500]
   Frontend -->|fetch| API[FastAPI 8000]
-  API --> Dispatcher[Thread/Process Tasks(python)]
-  Dispatcher --> Result[Normalized Output(python)]
+  API --> Dispatcher[Thread/Process Tasks]
+  Dispatcher --> Result[Normalized Output]
   Result --> Frontend(HTML/CSS/JSS)
   NGINX -->|8080| API
   NGINX -->|8080| Frontend
