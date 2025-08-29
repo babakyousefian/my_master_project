@@ -193,7 +193,7 @@
 
         <div style="text-align:center">
           <div style="font-size:12px;color:var(--muted)">نسخه</div>
-          <div style="font-weight:800">v1.1</div>
+          <div style="font-weight:800">v3.2</div>
         </div>
       </div>
     </header>
@@ -240,11 +240,27 @@
       </aside>
     </main>
 
+    <!-- API Documentation Section -->
+    <div style="margin-top:32px; padding:20px; text-align:center; border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.015)); border:1px solid rgba(255,255,255,0.04); box-shadow:0 10px 30px rgba(0,0,0,0.6);">
+      <h2 style="font-weight:700; margin-bottom:12px;">مستندات API</h2>
+      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a href="http://62.60.164.199:8000/docs" target="_blank"
+           style="padding:14px 22px; border-radius:12px; background:linear-gradient(90deg,var(--accent-5),var(--accent-6)); color:#061021; font-weight:700; text-decoration:none; box-shadow:0 8px 20px rgba(0,0,0,0.6); transition:transform .2s;">
+          Swagger
+        </a>
+        <a href="http://62.60.164.199:8000/redoc" target="_blank"
+           style="padding:14px 22px; border-radius:12px; background:linear-gradient(90deg,var(--accent-4),var(--accent-7)); color:#061021; font-weight:700; text-decoration:none; box-shadow:0 8px 20px rgba(0,0,0,0.6); transition:transform .2s;">
+          Tiangolo
+        </a>
+      </div>
+    </div>
+
+
     <footer>
       <div>طراحی شده برای پروژه — دانشگاه لرستان</div>
       <div>Made with ❤️ — Babak Yousefian</div>
       <div>Github:
-        <a href="https://github.com/babakyousefian" target="_blank"><mark>babakyousefian</mark></a>
+        <a href="https://github.com/babakyousefian/my_master_project" target="_blank"><mark>Github_Page</mark></a>
       </div>
     </footer>
   </div>
@@ -387,7 +403,6 @@
       }
     });
 
-// تغییر متن دکمه وقتی آهنگ به طور کامل تمام شد
     bgMusic.addEventListener('ended', () => {
       musicBtn.textContent = "Play";
     });
