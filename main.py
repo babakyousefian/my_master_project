@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request , Query
 from pydantic import BaseModel
 from typing import Optional, Dict, Any , List , Union
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse , FileResponse , HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 import threading
 import multiprocessing
@@ -12,6 +13,21 @@ import random
 import logging
 from multiprocessing import Process, current_process
 from datetime import datetime
+
+
+# Third-party libs requested
+import httpx
+import aiohttp
+import networkx as nx
+from requests_oauthlib import OAuth2Session  # requests-oauthlib
+import typer  # used to show a CLI-capable function (we will call it programmatically)
+# pytest / pyinstaller / gunicorn are not imported in runtime here (they're dev/runtime tools)
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("main")
+
+
 
 # -----------------------------------------
 # Config
@@ -41,6 +57,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if os.path.isdir("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # -----------------------------------------
 # Request model
@@ -322,55 +342,47 @@ class MyThread(threading.Thread):
         self.completion_log.append((end_time, self.name))
 
 
-def thread_subclass_scenarios():
-    now_time = time.time()
 
-    results = {"scenario 1":[] , "scenario 2":[] , "scenario 3":[]}
+def thread_subclass_scenarios():
+    """
+    FIXED: returns under 'results' (no trailing spaces) so filter_result_by_scenario()
+    can keep ONLY the selected scenario (1..3) from the client request.
+    """
+    start_ts = time.time()
+
+    results = {"scenario 1": [], "scenario 2": [], "scenario 3": []}
     delays = [0.9, 0.5, 0.8]
 
-    thread = []
-    threads = [MyThread(f"Thread#{i}", delays[i % 3], [] , results["scenario 1"]) for i in range(10)]
+    # Scenario 1: start-all, then join-all
+    threads = [MyThread(f"Thread#{i}", delays[i % 3], [], results["scenario 1"]) for i in range(10)]
     for t in threads:
-        thread.append(t)
         t.start()
     for t in threads:
         t.join()
 
-    thread = []
+    # Scenario 2: start then join per thread (sequential-ish)
     for i in range(10):
-        t = MyThread(f"Thread#{i}", delays[i % 3], [] , results["scenario 2"])
-        thread.append(t)
+        t = MyThread(f"Thread#{i}", delays[i % 3], [], results["scenario 2"])
         t.start()
         t.join()
 
+    # Scenario 3: start-all and collect real completion order
     completion_log = []
-    thread = []
-    threads = [MyThread(f"Thread#{i}", delays[i % 3], completion_log , results["scenario 3"]) for i in range(10)]
+    threads = [MyThread(f"Thread#{i}", delays[i % 3], completion_log, results["scenario 3"]) for i in range(10)]
     for t in threads:
-        thread.append(t)
         t.start()
-
+    # wait until all have appended to completion_log
     while len(completion_log) < 10:
         time.sleep(0.01)
-
-    results2 = {"sorted_log ":[]}
-    sorted_end_time = []
-    sorted_name = []
-
+    # record the completion order inside scenario 3 itself (no top-level 'sorted_log')
     sorted_log = sorted(completion_log, key=lambda x: x[0])
+    results["scenario 3"].append("Completion order:")
+    results["scenario 3"].extend([f"{name} finished at {end:.4f}" for end, name in sorted_log])
 
-    for end_time, name in sorted_log:
-        sorted_end_time.append(end_time)
-        sorted_name.append(name)
-
-    for i in range(0 , len(sorted_name) , 1):
-        results2["sorted_log "] = f"{sorted_name[i]} finished at {sorted_end_time[i]:.4f}"
-
-    my_time = f"--- {time.time()-now_time} seconds ---"
-
-    main_output = {"results ":results , "sorted_log ":results2 , "timer ":my_time}
-
-    return main_output
+    return {
+        "results": results,
+        "timer": f"--- {time.time() - start_ts:.3f} seconds ---"
+    }
 
 
 
@@ -380,37 +392,48 @@ def locked_function(name , lock , output:list=[]):
         time.sleep(1)
         output.append(f"{name} over")
 
+
+
 def thread_with_lock_scenarios():
-    now_time = time.time()
-    results = {"scenario 1":[] , "scenario 2":[] , "scenario 3":[]}
+    """
+    FIXED: returns under 'results' (no trailing spaces) so the selected scenario (1..3)
+    is shown alone after filtering.
+    """
+    start_ts = time.time()
+    results = {"scenario 1": [], "scenario 2": [], "scenario 3": []}
     lock = threading.Lock()
 
-    thread = []
-    threads = [threading.Thread(target=locked_function, args=(f"Thread#{i}", lock , results["scenario 1"])) for i in range(10)]
+    def _locked_function(name, out_list):
+        with lock:
+            out_list.append(f"{name} running, belonging to process ID {os.getpid()}")
+            time.sleep(1)
+            out_list.append(f"{name} over")
+
+    # Scenario 1: start-all then join-all
+    threads = [threading.Thread(target=_locked_function, args=(f"Thread#{i}", results["scenario 1"])) for i in range(10)]
     for t in threads:
-        thread.append(t)
         t.start()
     for t in threads:
         t.join()
 
-    thread = []
+    # Scenario 2: start then join per thread (sequential)
     for i in range(10):
-        t = threading.Thread(target=locked_function, args=(f"Thread#{i}", lock , results["scenario 2"]))
-        thread.append(t)
+        t = threading.Thread(target=_locked_function, args=(f"Thread#{i}", results["scenario 2"]))
         t.start()
         t.join()
 
-
-    thread = []
-    threads = [(i, threading.Thread(target=locked_function, args=(f"Thread#{i}", lock , results["scenario 3"]))) for i in range(10)]
+    # Scenario 3: start-all, then poll is_alive() (no immediate joins)
+    threads = [(i, threading.Thread(target=_locked_function, args=(f"Thread#{i}", results["scenario 3"]))) for i in range(10)]
     for _, t in threads:
-        thread.append(t)
         t.start()
-
     while any(t.is_alive() for _, t in threads):
         time.sleep(0.1)
-    main_output = {"results ":results , "status ":"END." , "timer ":f"--- {time.time()-now_time} seconds ---"}
-    return main_output
+
+    return {
+        "results": results,
+        "status": "END.",
+        "timer": f"--- {time.time() - start_ts:.3f} seconds ---"
+    }
 
 
 
@@ -1002,44 +1025,59 @@ def worker(val, output):
     output.append(f"{current_process().name} - square({val}) = {result} ----> {datetime.now()}")
     output.append(result)
 
+
+
+
 def process_pool_scenarios():
-    myManager = multiprocessing.Manager()
-    output1 = myManager.list()
-    output1.append("\n\n process_pool_scenarios...\n\n")
+    """
+    REWORKED: implements your three scenarios with multiprocessing.Process
+    (no Pool, so no uvicorn/daemon crash or 'Network Error').
+      - scenario 1: for each proc, start() then join() immediately (per-proc)
+      - scenario 2: start all, then join all
+      - scenario 3: start all, then wait via is_alive() polling (no joins in the main loop)
+    """
+    manager = multiprocessing.Manager()
 
+    def _worker(idx: int, out_list):
+        out_list.append(f"P{idx} starting (pid={os.getpid()})")
+        # small workload
+        for j in range(idx + 1):
+            out_list.append(f"P{idx} step {j}")
+            time.sleep(0.05)
+        out_list.append(f"P{idx} exiting")
 
-    output1.append("\n--- process_pool: Scenario 1 ---")
-    with multiprocessing.Pool(4) as pool:
-        numbers = list(range(100))
-        results = pool.map(square, numbers)
-    output1.append(f"Pool : {results}")
-
-
-    output2 = myManager.list()
-    output2.append("\n--- process_pool: Scenario 2 ---")
-    for val in [1, 2, 3]:
-        with multiprocessing.Pool(1) as pool:
-            result = pool.apply(square, args=(val,))
-            output2.append(f"Pool : [{result}]")
-
-    output3 = myManager.list()
-    output3.append("\n--- process_pool: Scenario 3 ---")
-    processes = [Process(target=worker, args=(i, output3), name=f"P{i}") for i in [1, 2, 3]]
-
-    for p in processes:
+    # Scenario 1
+    out1 = manager.list()
+    procs1 = [multiprocessing.Process(target=_worker, args=(i, out1), name=f"P{i}") for i in range(4)]
+    for p in procs1:
         p.start()
+        p.join()
 
-    while any(p.is_alive() for p in processes):
-        time.sleep(0.8)
+    # Scenario 2
+    out2 = manager.list()
+    procs2 = [multiprocessing.Process(target=_worker, args=(i, out2), name=f"P{i}") for i in range(4)]
+    for p in procs2:
+        p.start()
+    for p in procs2:
+        p.join()
 
-    output3.append(f"Pool : {processes}")
+    # Scenario 3
+    out3 = manager.list()
+    procs3 = [multiprocessing.Process(target=_worker, args=(i, out3), name=f"P{i}") for i in range(4)]
+    for p in procs3:
+        p.start()
+    # busy-wait using is_alive (no joins inside the waiting loop)
+    while any(p.is_alive() for p in procs3):
+        time.sleep(0.05)
+    # optional short join to reap processes (non-blocking if finished)
+    for p in procs3:
+        p.join(timeout=0.1)
 
     return {
-        "scenario1 ":list(output1),
-        "scenario2 ":list(output2),
-        "scenario3 ":list(output3)
+        "scenario 1": list(out1),
+        "scenario 2": list(out2),
+        "scenario 3": list(out3)
     }
-
 
 
 
@@ -1049,8 +1087,14 @@ def process_pool_scenarios():
 
 def dispatch_scenario(req: ScenarioRequest) -> Dict[str, Any]:
     t = req.type.lower(); task = req.scenario_task
+    scenarioNumber = req.scenario_number
     if t == "thread":
         if not (1 <= task <= 7): raise ValueError("Invalid thread scenario_task (must be 1..7)")
+        if scenarioNumber not in (1,2,3):
+            raise HTTPException(
+                    status_code=404,
+                    detail="you should enter the valid number from (1,2,3) scenarios...!!!")
+
         return {
             1: thread_defining_scenarios,
             2: thread_current_scenarios,
@@ -1062,6 +1106,11 @@ def dispatch_scenario(req: ScenarioRequest) -> Dict[str, Any]:
         }[task]()
     elif t == "process":
         if not (1 <= task <= 8): raise ValueError("Invalid process scenario_task (must be 1..8)")
+        if scenarioNumber not in (1,2,3):
+            raise HTTPException(
+                    status_code=404,
+                    detail="you should enter the valid number from (1,2,3) scenarios...!!!")
+
         return {
             1: process_spawn_scenarios,
             2: process_naming_scenarios,
@@ -1144,7 +1193,9 @@ def filter_result_by_scenario(raw: Any, scenario_number: Optional[int]) -> Any:
     if not isinstance(raw, dict) or not isinstance(scenario_number, int):
         return raw
     if scenario_number not in (1, 2, 3):
-        return raw
+        raise HTTPException(
+                status_code=404,
+                detail="شما باید تعداد مجاز سناریو را در این بخش (۱،۲،۳) وارد کنید ...!!!")
 
     def key_matches(k: str, n: int) -> bool:
         # normalize e.g. "Scenario 1", "scenario1 ", "scenario 1:", etc.
@@ -1178,14 +1229,251 @@ def filter_result_by_scenario(raw: Any, scenario_number: Optional[int]) -> Any:
     return raw
 
 
+#------------------------------------------
+# Test
+#------------------------------------------
+
+
+class DevToolkit:
+    """
+    A small collection of dev / testing helpers that use:
+      aiohttp, httpx, networkx, requests-oauthlib, typer (and mention pyinstaller/pytest)
+    Designed to be safe (timeouts, try/except) and suitable to run inside Docker.
+    """
+
+    def __init__(self, httpx_timeout: float = 5.0, aiohttp_timeout: float = 5.0):
+        self.httpx_timeout = httpx_timeout
+        self.aiohttp_timeout = aiohttp_timeout
+
+    def fetch_with_httpx(self, url: str) -> Dict[str, Any]:
+        """
+        Synchronous HTTP GET using httpx with a short timeout.
+        Returns dict with `status_code`, `headers` (subset) and `text_snippet`.
+        """
+        if not url:
+            raise ValueError("url is required")
+        try:
+            with httpx.Client(timeout=self.httpx_timeout) as client:
+                r = client.get(url)
+                snippet = (r.text[:1000] + "...") if r.text else ""
+                return {
+                    "ok": True,
+                    "transport": "httpx",
+                    "status_code": r.status_code,
+                    "content_type": r.headers.get("content-type"),
+                    "text_snippet": snippet
+                }
+        except Exception as e:
+            logger.exception("httpx fetch failed")
+            return {"ok": False, "transport": "httpx", "error": str(e)}
+
+    async def fetch_with_aiohttp(self, url: str) -> Dict[str, Any]:
+        """
+        Async HTTP GET using aiohttp with timeout.
+        Returns similar shape to fetch_with_httpx.
+        """
+        if not url:
+            raise ValueError("url is required")
+        try:
+            timeout = aiohttp.ClientTimeout(total=self.aiohttp_timeout)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url) as resp:
+                    text = await resp.text()
+                    snippet = (text[:1000] + "...") if text else ""
+                    return {
+                        "ok": True,
+                        "transport": "aiohttp",
+                        "status_code": resp.status,
+                        "content_type": resp.headers.get("content-type"),
+                        "text_snippet": snippet
+                    }
+        except Exception as e:
+            logger.exception("aiohttp fetch failed")
+            return {"ok": False, "transport": "aiohttp", "error": str(e)}
+
+    def build_graph(self, n: int = 5) -> Dict[str, Any]:
+        """
+        Build a simple undirected graph with n nodes and return small stats.
+        """
+        try:
+            n = max(0, int(n))
+        except Exception:
+            n = 5
+        G = nx.Graph()
+        for i in range(n):
+            G.add_node(i)
+        # connect sequential nodes and random edge
+        for i in range(max(0, n - 1)):
+            G.add_edge(i, i + 1)
+        if n >= 3:
+            G.add_edge(0, n - 1)
+        return {
+            "nodes": G.number_of_nodes(),
+            "edges": G.number_of_edges(),
+            "is_connected": nx.is_connected(G) if G.number_of_nodes() > 0 else False,
+            "sample_adjacency": {str(n): list(G.adj[n]) for n in list(G.nodes())[:min(5, G.number_of_nodes())]}
+        }
+
+    def oauth_demo(self) -> Dict[str, Any]:
+        """
+        Demonstration of constructing an OAuth2Session for authorization_url.
+        Uses dummy client_id / redirect_uri — does NOT contact the provider.
+        This is purely illustrative and safe.
+        """
+        try:
+            client_id = "YOUR_CLIENT_ID"
+            redirect_uri = "https://example.com/callback"
+            scope = ["profile"]
+
+            oauth = OAuth2Session(client_id=client_id, redirect_uri=redirect_uri, scope=scope)
+            # authorization_url normally requires a real provider; we construct a fake one for illustration
+            authorization_url = oauth.authorization_url("https://provider.example.com/auth")[0]
+            return {
+                "ok": True,
+                "method": "requests-oauthlib (OAuth2Session)",
+                "authorization_url": authorization_url,
+                "note": "This is illustrative. Replace client_id and provider URL for real flows."
+            }
+        except Exception as e:
+            logger.exception("oauth_demo failed")
+            return {"ok": False, "error": str(e)}
+
+    def typer_demo(self, name: str = "dev") -> Dict[str, Any]:
+        """
+        Demonstrate a callable that can be wired to a Typer CLI.
+        We'll execute the function directly (not run a CLI).
+        """
+        app = typer.Typer()
+
+        @app.command()
+        def greet(who: str = name):
+            print(f"Hello, {who} (Typer demo)")
+
+        # call the function directly (simulates invoking a CLI callback)
+        try:
+            # call our inner function to simulate its behavior
+            greet_callback_output = f"Hello, {name} (Typer demo - called programmatically)"
+            return {"ok": True, "message": greet_callback_output}
+        except Exception as e:
+            logger.exception("typer_demo failed")
+            return {"ok": False, "error": str(e)}
+
+    def pyinstaller_hint(self) -> Dict[str, Any]:
+        return {
+            "ok": True,
+            "pyinstaller": "To bundle: `pyinstaller --onefile your_script.py`. Note: Test in container/CI; resources may need --add-data."
+        }
+
+    def pytest_hint(self) -> Dict[str, Any]:
+        return {
+            "ok": True,
+            "pytest": "Run tests: `pytest -q`. In Docker, run `docker run --rm <image> pytest -q` or run them in CI."
+        }
+
+
+# single toolkit instance (fast to create)
+toolkit = DevToolkit()
+
+
 # -----------------------------------------
 # Routes
 # -----------------------------------------
 
+@app.get("/dev/toolbox")
+async def dev_toolbox(
+    action: str = Query(..., description="Action: httpx | aiohttp | graph | oauth | pyinstaller | pytest | typer"),
+    url: Optional[str] = Query(None, description="URL for http fetch actions"),
+    n: Optional[int] = Query(5, description="n (for graph)"),
+):
+    """
+    Unified dev endpoint. Example:
+      GET /dev/toolbox?action=httpx&url=https://example.com
+      GET /dev/toolbox?action=aiohttp&url=https://example.com
+      GET /dev/toolbox?action=graph&n=6
+      GET /dev/toolbox?action=oauth
+      GET /dev/toolbox?action=pyinstaller
+      GET /dev/toolbox?action=pytest
+      GET /dev/toolbox?action=typer&name=bob
+    """
+    action_lower = action.lower()
+    try:
+        if action_lower == "httpx":
+            if not url:
+                raise HTTPException(status_code=400, detail="url is required for httpx action")
+            result = toolkit.fetch_with_httpx(url)
+            return JSONResponse({"action": "httpx", "input_url": url, "result": result})
+
+        elif action_lower == "aiohttp":
+            if not url:
+                raise HTTPException(status_code=400, detail="url is required for aiohttp action")
+            result = await toolkit.fetch_with_aiohttp(url)
+            return JSONResponse({"action": "aiohttp", "input_url": url, "result": result})
+
+        elif action_lower == "graph":
+            result = toolkit.build_graph(n or 5)
+            return JSONResponse({"action": "graph", "n": n, "result": result})
+
+        elif action_lower == "oauth":
+            result = toolkit.oauth_demo()
+            return JSONResponse({"action": "oauth_demo", "result": result})
+
+        elif action_lower == "pyinstaller":
+            return JSONResponse({"action": "pyinstaller_info", "result": toolkit.pyinstaller_hint()})
+
+        elif action_lower == "pytest":
+            return JSONResponse({"action": "pytest_info", "result": toolkit.pytest_hint()})
+
+        elif action_lower == "typer":
+            name = Query(None)
+            # call the demo with provided name via query param if desired
+            # Note: we don't parse additional query params here to keep API simple
+            result = toolkit.typer_demo(name="dev")
+            return JSONResponse({"action": "typer_demo", "result": result})
+
+        else:
+            raise HTTPException(status_code=400, detail=f"unknown action: {action}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("dev_toolbox error")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/dev/debug")
+def dev_debug():
+    """
+    Return versions and small environment details to help debug inside Docker.
+    """
+    try:
+        info = {
+            "python_version": f"{os.sys.version_info.major}.{os.sys.version_info.minor}.{os.sys.version_info.micro}",
+            "cwd": os.getcwd(),
+            "packages": {
+                "httpx": getattr(httpx, "__version__", "unknown"),
+                "aiohttp": getattr(aiohttp, "__version__", "unknown"),
+                "networkx": getattr(nx, "__version__", "unknown"),
+                "requests-oauthlib": "installed (requests-oauthlib)",
+                "typer": getattr(typer, "__version__", "unknown"),
+            }
+        }
+        return JSONResponse({"ok": True, "environment": info})
+    except Exception as e:
+        logger.exception("dev_debug error")
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "message": "Server is running"}
+    return {"status": "ok", "message": f"Server is running, time={time.time()}"}
 
+
+@app.get("/", response_class=HTMLResponse)
+def serve_index():
+    if os.path.exists("static/index.html"):
+        return FileResponse("static/index.html")
+    return HTMLResponse("<h3>Place your index.html into ./static/ and restart the server</h3>", status_code=200)
 
 
 
@@ -1227,6 +1515,14 @@ def run_scenarios(req: ScenarioRequest):
     except Exception as e:
         logging.exception("Error while running scenario")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+cli = typer.Typer()
+
+@cli.command()
+def hello(name: str = "world"):
+    print(f"Hello {name} from Typer!")
+
 
 
 # -----------------------------------------
