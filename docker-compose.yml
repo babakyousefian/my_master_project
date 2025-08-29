@@ -6,7 +6,7 @@ services:
     image: babak/parallel-api:latest
     container_name: parallel_api
     ports:
-      - "8000:8000"
+      - "8000:8000"          # expose FastAPI to host
     environment:
       - TZ=Asia/Tehran
     healthcheck:
@@ -24,7 +24,7 @@ services:
     image: babak/parallel-web:latest
     container_name: parallel_web
     ports:
-      - "8080:8080"
+      - "8080:8080"          # expose static site to host
     depends_on:
       api:
         condition: service_healthy
